@@ -36,7 +36,7 @@ spec:
         - name: TUNNEL_TOKEN
           valueFrom:
             secretKeyRef:
-              name: k8s_ingress_tunnel_prod_credentials
+              name: cloudflare-ingress-tunnel-prod-token
               key: token
         livenessProbe:
           httpGet:
@@ -46,8 +46,8 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 10
         resources:
-          limits:
-            memory: "20m"
-            cpu: "64Mi"
           requests:
+            cpu: "20m"
+            memory: "64Mi"
+          limits:
             memory: "128Mi"

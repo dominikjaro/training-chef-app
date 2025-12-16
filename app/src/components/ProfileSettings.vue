@@ -8,8 +8,8 @@ const bodyType = ref('Hard Gainer (Ectomorph)');
 
 const bodyTypes = [
   'Hard Gainer (Ectomorph)',
-  'Endomorph',
-  'Mesomorph',
+  'Soft Gainer (Endomorph)',
+  'Natural Athlete (Mesomorph)',
 ];
 
 function saveProfile() {

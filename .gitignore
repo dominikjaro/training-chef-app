@@ -36,5 +36,10 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-# Ignore .env files that may contain environment variables for Terraform
+# Ignore python virtual environments
+/app/mcp-server/venv/
+/app/backend/venv/
+
+# Ignore .env files
 .env
+**/.env

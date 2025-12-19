@@ -35,7 +35,7 @@ spec:
           name: postgres
   volumeClaimTemplates:
   - metadata:
-      name: local-path
+      name: pgdata
     spec:
       accessModes: [ "ReadWriteOnce" ]
       storageClassName: "local-path"

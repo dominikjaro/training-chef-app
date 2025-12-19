@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mcp-server
+  name: mcp-server
+  namespace: mcp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp-server
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: mcp-server
+    spec:
+      containers:
+      - image: dominikjaro/mcp-server:latest
+        name: mcp-server
+        ports:
+        - containerPort: 8080
+        env:
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-credentials
+              key: GEMINI_API_KEY
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits: 
+            memory: "256Mi"
+            cpu: "300m"

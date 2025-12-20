@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # Set the working directory to /app
 WORKDIR /app
@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Make port 8080 available to the world outside this container
 EXPOSE 8080
 
-# Run main.py when the container launches
-CMD ["python", "main.py", "--transport", "tcp", "--port", "8080"]
+# FIX: Change transport to 'sse' and add host '0.0.0.0'
+CMD ["python", "main.py", "--transport", "sse", "--port", "8080", "--host", "0.0.0.0"]

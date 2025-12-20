@@ -17,7 +17,7 @@ spec:
         app: fastapi
     spec:
       containers:
-      - image: dominikjaro/fastapi:latest
+      - image: dominikjaro/fastapi:v1.0.0
         name: fastapi
         env:
         - name: DATABASE_HOSTNAME

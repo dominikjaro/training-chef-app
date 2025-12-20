@@ -17,10 +17,7 @@ genai.configure(api_key=api_key)
 
 # Instantiate a FastMCP server
 server = FastMCP(
-    name="Training Chef Agent",
-    transport="http",
-    host="0.0.0.0",
-    port=8080
+    name="Training Chef Agent"
 )
 
 @server.tool()

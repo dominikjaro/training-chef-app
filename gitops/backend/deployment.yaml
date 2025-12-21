@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: fastapi
-  name: fastapi
-  namespace: fastapi
+    app: backend-api
+  name: backend-api
+  namespace: backend-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: fastapi
+      app: backend-api
   strategy: {}
   template:
     metadata:
       labels:
-        app: fastapi
+        app: backend-api
     spec:
       containers:
       - image: dominikjaro/fastapi:v1.0.0
-        name: fastapi
+        name: backend-api
         env:
         - name: DATABASE_HOSTNAME
           value: postgres-service.postgres.svc.cluster.local

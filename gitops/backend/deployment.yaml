@@ -18,6 +18,7 @@ spec:
     spec:
       containers:
       - image: dominikjaro/fastapi:v1.0.0
+        imagePullPolicy: Always
         name: backend-api
         env:
         - name: DATABASE_HOSTNAME

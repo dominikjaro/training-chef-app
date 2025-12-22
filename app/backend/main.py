@@ -1,14 +1,17 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 app = FastAPI()
 
 class ProfileModel(BaseModel):
-    weight: float
+    weight: float = Field(alias="currentWeight")
     height: float
     ftp: int
-    body_type: str
+    body_type: str = Field(alias="bodyType")
+    
+    class Config:
+        populate_by_name = True
 
 # In-memory storage for profile data
 profile_data: Optional[ProfileModel] = None

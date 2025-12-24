@@ -17,7 +17,8 @@ spec:
         app: frontend-ui
     spec:
       containers:
-      - image: dominikjaro/training-chef-app-frontend:latest
+      - image: dominikjaro/training-chef-app-frontend:v1.0.1
+        imagePullPolicy: Always
         name: frontend-ui
         ports:
         - containerPort: 80

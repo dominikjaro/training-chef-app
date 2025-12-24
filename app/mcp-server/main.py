@@ -1,7 +1,8 @@
 import os
-# The google.generativeai package is deprecated and will be removed in a future version.
-# Please migrate to the google.genai package.
-# For now, we will ignore the warning.
+import warnings
+# Suppress the specific Google deprecation warning
+warnings.filterwarnings("ignore", category=UserWarning, module="google.generativeai")
+
 import google.generativeai as genai
 from dotenv import load_dotenv
 from fastmcp import FastMCP
@@ -43,4 +44,5 @@ def ask_chef(question: str, current_weight: float, ftp: int, body_type: str) -> 
     return response.text
 
 if __name__ == "__main__":
-    server.run()
+    # Explicitly force SSE mode for Docker
+    server.run(transport="sse", port=8080, host="0.0.0.0")

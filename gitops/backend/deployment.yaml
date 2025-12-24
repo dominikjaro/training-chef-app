@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: backend-api
+  name: backend-api
+  namespace: backend-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-api
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: backend-api
+    spec:
+      containers:
+      - image: dominikjaro/fastapi:v1.0.1
+        imagePullPolicy: Always
+        name: backend-api
+        env:
+        - name: DATABASE_HOSTNAME
+          value: postgres-service.postgres.svc.cluster.local
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        - name: MCP_SERVER_URL
+          value: http://mcp-server.mcp-server:8080
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits: 
+            memory: "256Mi"
+            cpu: "1000m" 

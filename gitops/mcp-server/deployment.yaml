@@ -17,7 +17,7 @@ spec:
         app: mcp-server
     spec:
       containers:
-      - image: dominikjaro/mcp-server:latest
+      - image: dominikjaro/mcp-server:v1.0.0
         name: mcp-server
         ports:
         - containerPort: 8080

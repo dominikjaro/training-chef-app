@@ -1,48 +1,16 @@
-import os
-import warnings
-# Suppress the specific Google deprecation warning
-warnings.filterwarnings("ignore", category=UserWarning, module="google.generativeai")
-
-import google.generativeai as genai
-from dotenv import load_dotenv
 from fastmcp import FastMCP
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Configure the Gemini API
-api_key = os.environ.get("GEMINI_API_KEY")
-if not api_key:
-    raise ValueError("GEMINI_API_KEY not found in environment variables. Please set it in the .env file.")
-genai.configure(api_key=api_key)
-
-# Instantiate a FastMCP server
-server = FastMCP(
-    name="Training Chef Agent"
-)
+# No Gemini here! Just tools.
+server = FastMCP(name="Training Chef Tools")
 
 @server.tool()
-def ask_chef(question: str, current_weight: float, ftp: int, body_type: str) -> str:
+def get_strava_stats(user_id: str) -> str:
     """
-    Provides expert cycling chef advice based on user's metrics and question.
-
-    :param question: The user's question for the chef.
-    :param current_weight: The user's current weight in kg.
-    :param ftp: The user's Functional Threshold Power.
-    :param body_type: The user's body type (e.g., ectomorph, mesomorph, endomorph).
-    :return: Actionable advice from the cycling chef.
+    Fetches the user's recent ride statistics from Strava.
     """
-    model = genai.GenerativeModel('gemini-pro')
-    
-    prompt = (
-        f"You are an expert cycling chef. The user is a {body_type} weighing {current_weight}kg "
-        f"with an FTP of {ftp}. They ask: '{question}'. Give brief, actionable advice."
-    )
-    
-    response = model.generate_content(prompt)
-    
-    return response.text
+    # Later you will add real Strava API code here
+    return f"User {user_id} rode 150km this week with 2000m elevation gain."
 
 if __name__ == "__main__":
-    # Explicitly force SSE mode for Docker
+    # Listen on all interfaces so K8s can reach it
     server.run(transport="sse", port=8080, host="0.0.0.0")

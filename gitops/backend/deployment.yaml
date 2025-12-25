@@ -17,7 +17,7 @@ spec:
         app: backend-api
     spec:
       containers:
-      - image: dominikjaro/fastapi:v1.0.1
+      - image: dominikjaro/fastapi:v1.0.3
         imagePullPolicy: Always
         name: backend-api
         env:
@@ -30,6 +30,11 @@ spec:
               key: POSTGRES_PASSWORD
         - name: MCP_SERVER_URL
           value: http://mcp-server.mcp-server:8080
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-credentials
+              key: GEMINI_API_KEY
         resources:
           requests:
             memory: "128Mi"

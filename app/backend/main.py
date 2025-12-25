@@ -99,7 +99,7 @@ async def chat_with_ai(message: str): # Receives ?message=... from frontend
                     f"Only use a tool if the user explicitly asks for 'Strava stats'. "
                     f"Otherwise, just answer their question helpfully."
                 )
-                model = genai.GenerativeModel('gemini-pro')
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 response = model.generate_content(f"{system_instruction}\nUser Question: {message}")
                 ai_text = response.text
 
@@ -114,6 +114,6 @@ async def chat_with_ai(message: str): # Receives ?message=... from frontend
         # --- FALLBACK (If MCP is down) ---
         print(f"MCP Connection Error: {e}")
         # We still want the chat to work, even if tools are broken
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         response = model.generate_content(f"{persona}\nUser: {message}")
         return {"response": response.text}

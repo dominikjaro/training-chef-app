@@ -17,7 +17,7 @@ spec:
         app: backend-api
     spec:
       containers:
-      - image: dominikjaro/fastapi:v1.0.2
+      - image: dominikjaro/fastapi:v1.0.3
         imagePullPolicy: Always
         name: backend-api
         env:

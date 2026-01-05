@@ -1,18 +1,22 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlmodel import SQLModel, create_engine, Session
 from dotenv import load_dotenv
 
 # Load environment variables from a .env file for local development
 load_dotenv()
 
-# We'll get the database URL from an environment variable
-# A default value is provided for convenience, but it should be set in your environment
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/dbname")
+# Get DB URL from environment.
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    # Fallback just so local tests don't crash immediately, 
+    # but K8s MUST provide the real URL.
+    DATABASE_URL = "sqlite:///./test.db" 
 
-engine = create_engine(DATABASE_URL)
+# Create the engine (connection to Postgres)
+# echo=True prints SQL queries to logs (good for debugging)
+engine = create_engine(DATABASE_URL, echo=True)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
+# Dependency to get a DB session in endpoints
+def get_session():
+    with Session(engine) as session:
+        yield session

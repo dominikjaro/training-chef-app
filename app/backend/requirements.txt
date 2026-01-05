@@ -7,3 +7,5 @@ pydantic
 google-generativeai
 mcp
 httpx
+sqlmodel
+psycopg2-binary

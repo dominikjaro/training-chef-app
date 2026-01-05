@@ -17,7 +17,7 @@ spec:
         app: backend-api
     spec:
       containers:
-      - image: dominikjaro/fastapi:v1.0.3
+      - image: dominikjaro/fastapi:v1.0.4
         imagePullPolicy: Always
         name: backend-api
         env:
@@ -35,6 +35,8 @@ spec:
             secretKeyRef:
               name: ai-credentials
               key: GEMINI_API_KEY
+        - name: DATABASE_URL
+          value: "postgresql://trainingchef_admin:$(POSTGRES_PASSWORD)@postgres-service.postgres.svc.cluster.local:5432/trainingchef_db"
         resources:
           requests:
             memory: "128Mi"

@@ -8,4 +8,6 @@ google-generativeai
 mcp
 httpx
 sqlmodel
-psycopg2-binary
+google-auth
+requests
+python-multipart

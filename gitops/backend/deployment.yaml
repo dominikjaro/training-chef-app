@@ -35,6 +35,16 @@ spec:
             secretKeyRef:
               name: ai-credentials
               key: GEMINI_API_KEY
+        - name: GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: google-client-id
+              key: GOOGLE_CLIENT_ID
+        - name: ALLOWED_USERS
+          valueFrom:
+            secretKeyRef:
+              name: allowed-users
+              key: ALLOWED_USERS
         - name: DATABASE_URL
           value: postgresql://trainingchef_admin:$(POSTGRES_PASSWORD)@postgres-service.postgres.svc.cluster.local:5432/trainingchef_db
         resources:

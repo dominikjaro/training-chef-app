@@ -1,108 +1,147 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, reactive, nextTick, onMounted } from 'vue';
+// Import store for token
+import { userState } from '../store.js';
 
-const messages = ref([]);
-const newMessage = ref('');
-const loading = ref(true);
-const profileExists = ref(false);
+const userInput = ref('');
+const isLoading = ref(false);
+const chatContainer = ref(null);
+const hasProfile = ref(false);
 
-// 1. On load, check if user has a profile
-async function checkProfile() {
-  try {
-    const res = await fetch('/api/profile');
-    const data = await res.json();
-    
-    // Your backend sends { message: "No profile..." } if empty
-    // OR { weight: 78, ... } if it exists.
-    if (data.weight || data.currentWeight) {
-        profileExists.value = true;
-        // Add a welcome message
-        messages.value.push({ sender: 'ai', text: 'Hello! I am your Training Chef. How can I help you today?' });
-    } else {
-        profileExists.value = false;
+const chatHistory = reactive([
+  { role: 'chef', content: "Bonjour! I am your Cycling Chef. Let's plan your nutrition. What are your goals?" }
+]);
+
+const checkProfile = async () => {
+    const token = userState.token;
+    if (!token) return;
+
+    try {
+      // ATTACH TOKEN
+      const response = await fetch('/api/profile', {
+          headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        hasProfile.value = Object.keys(data).length > 0;
+      }
+    } catch (error) {
+      console.error("Failed to check profile status", error);
     }
-  } catch (e) {
-    console.error("Connection error:", e);
-  } finally {
-    loading.value = false;
-  }
-}
+};
 
-// 2. Function to send message to AI
-async function sendMessage() {
-  if (!newMessage.value.trim()) return;
+defineExpose({ checkProfile });
 
-  // Add user message to UI immediately
-  messages.value.push({ sender: 'user', text: newMessage.value });
-  const textToSend = newMessage.value;
-  newMessage.value = '';
-
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      // Note: Backend expects query param ?message=... in your current code
-      // simpler to change fetch url:
-      // BUT simpler is to change backend to accept body. 
-      // Let's use the Query param method for now as per your backend code:
-    });
-    
-    // WAIT! Your current backend uses: @app.post("/api/chat") def chat_with_ai(message: str)
-    // In FastAPI, if you don't define a Pydantic model, it expects a Query Parameter.
-    // Let's call it correctly:
-    const response = await fetch(`/api/chat?message=${encodeURIComponent(textToSend)}`, {
-        method: 'POST'
-    });
-    
-    const data = await response.json();
-    messages.value.push({ sender: 'ai', text: data.response });
-
-  } catch (e) {
-    messages.value.push({ sender: 'ai', text: "Sorry, I'm having trouble connecting to the kitchen." });
-  }
-}
-
-// Check profile when component mounts
 onMounted(() => {
     checkProfile();
 });
 
-// Allow parent to trigger a re-check (when profile is saved)
-defineExpose({ checkProfile });
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatContainer.value) {
+      chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
+    }
+  });
+};
+
+const sendMessage = async () => {
+  if (userInput.value.trim() === '') return;
+
+  const userMessage = userInput.value;
+  chatHistory.push({ role: 'user', content: userMessage });
+  userInput.value = '';
+  scrollToBottom();
+  isLoading.value = true;
+
+  const token = userState.token;
+  if (!token) {
+       chatHistory.push({ role: 'chef', content: "Pardon, I cannot verify your identity. Please log in again." });
+       isLoading.value = false;
+       scrollToBottom();
+       return;
+  }
+
+  try {
+    // ATTACH TOKEN
+    const response = await fetch('/api/chat?message=' + encodeURIComponent(userMessage), {
+        method: 'POST',
+        headers: {
+             'Authorization': `Bearer ${token}`
+        }
+    });
+    
+    if (!response.ok) {
+         if (response.status === 401 || response.status === 403) {
+             throw new Error("Unauthorized: Please check your login or whitelist status.");
+         }
+         throw new Error(`HTTP error! status: ${response.status}`);
+    }
+      
+    const data = await response.json();
+    chatHistory.push({ role: 'chef', content: data.response });
+  } catch (error) {
+    console.error('Chat Error:', error);
+    chatHistory.push({ role: 'chef', content: "Zut alors! My brain is tired. Let's try again later. (" + error.message + ")" });
+  } finally {
+    isLoading.value = false;
+    scrollToBottom();
+  }
+};
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-white rounded-lg shadow-md p-4">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">Talk to your Training Chef</h2>
-
-    <div v-if="loading" class="flex-grow flex items-center justify-center bg-gray-100 rounded">
-      <p class="text-gray-500">Checking profile...</p>
+  <div class="flex flex-col h-full bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center">
+      <h2 class="text-lg font-bold text-gray-800">Chef's Table</h2>
+      <span v-if="hasProfile" class="text-xs text-green-600 font-medium px-2 py-1 bg-green-100 rounded-full">Profile Active</span>
+      <span v-else class="text-xs text-orange-600 font-medium px-2 py-1 bg-orange-100 rounded-full">No Profile Found</span>
     </div>
 
-    <div v-else-if="!profileExists" class="flex-grow flex items-center justify-center bg-gray-100 rounded">
-      <p class="text-gray-600">Please save your profile on the left to start chatting.</p>
-    </div>
-
-    <div v-else class="flex flex-col flex-grow h-0">
-      <div class="flex-grow overflow-y-auto mb-4 space-y-2 p-2 bg-gray-50 rounded border">
-        <div 
-            v-for="(msg, index) in messages" 
-            :key="index"
-            :class="['p-2 rounded max-w-[80%]', msg.sender === 'user' ? 'bg-blue-100 self-end ml-auto' : 'bg-gray-200 self-start']"
+    <div ref="chatContainer" class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
+      <div
+        v-for="(message, index) in chatHistory"
+        :key="index"
+        :class="['flex', message.role === 'user' ? 'justify-end' : 'justify-start']"
+      >
+        <div
+          :class="[
+            'max-w-[70%] rounded-lg p-3 shadow-sm',
+            message.role === 'user'
+              ? 'bg-blue-600 text-white rounded-br-none'
+              : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
+          ]"
         >
-            <strong>{{ msg.sender === 'user' ? 'You' : 'Chef' }}:</strong> {{ msg.text }}
+          <p class="text-sm">{{ message.content }}</p>
         </div>
       </div>
+      
+      <div v-if="isLoading" class="flex justify-start">
+         <div class="bg-white border border-gray-200 text-gray-500 p-3 rounded-lg rounded-bl-none shadow-sm">
+            <div class="flex space-x-2">
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+            </div>
+         </div>
+      </div>
 
-      <form @submit.prevent="sendMessage" class="flex gap-2">
-        <input 
-            v-model="newMessage"
-            type="text" 
-            placeholder="Ask about your diet..." 
-            class="flex-grow shadow appearance-none border rounded py-2 px-3 text-gray-700 focus:outline-none"
-        />
-        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Send
+    </div>
+
+    <div class="p-4 border-t border-gray-200 bg-white">
+      <form @submit.prevent="sendMessage" class="flex space-x-2">
+        <input
+          v-model="userInput"
+          type="text"
+          placeholder="Ask about nutrition for your next ride..."
+          class="flex-1 appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:border-blue-500 focus:shadow-outline transition ease-in-out duration-150"
+          :disabled="isLoading"
+        >
+        <button
+          type="submit"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 transition ease-in-out duration-150"
+          :disabled="isLoading || userInput.trim() === ''"
+        >
+          Send
         </button>
       </form>
     </div>

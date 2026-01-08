@@ -7,3 +7,7 @@ pydantic
 google-generativeai
 mcp
 httpx
+sqlmodel
+google-auth
+requests
+python-multipart

@@ -1,27 +1,28 @@
 <script setup>
-import { ref } from 'vue';
-// --- CHANGE: Update import to the new library ---
 import { decodeCredential } from 'vue3-google-login'
+// --- NEW: Import the shared store ---
+import { userState } from './store.js';
 
 // Imports for your existing components
 import ProfileSettings from './components/ProfileSettings.vue';
 import ChefChat from './components/ChefChat.vue';
 
-// --- STATE ---
-const isLoggedIn = ref(false);
-const userEmail = ref('');
-const chatRef = ref(null);
-
 // --- LOGIN HANDLERS ---
 const handleLoginSuccess = (response) => {
-  // The new library sends the token in a property called 'credential'
+  // The raw Google JWT token
   const { credential } = response;
-  console.log("Google Login Success! Encoded Token:", credential);
+  console.log("Google Login Success!");
 
   try {
+    // 1. Decode temporarily just to get the email for display
     const userData = decodeCredential(credential);
-    userEmail.value = userData.email;
-    isLoggedIn.value = true;
+    
+    // 2. Save everything to our shared store
+    userState.email = userData.email;
+    // CRITICAL: Save the raw token so other components can use it for API calls
+    userState.token = credential;
+    userState.isLoggedIn = true;
+
   } catch (error) {
     console.error("Failed to decode Google token", error);
   }
@@ -32,22 +33,22 @@ const handleLoginError = () => {
     alert("Login failed. Please try again.");
 };
 
+// Your existing handler for component communication
 const handleProfileSaved = () => {
-  if (chatRef.value) {
-    chatRef.value.checkProfile();
-  }
+  // We can add logic here later if needed
+  console.log("Profile saved successfully");
 };
 </script>
 
 <template>
   <div class="h-screen bg-gray-100 font-sans">
 
-    <header v-if="isLoggedIn" class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center">
+    <header v-if="userState.isLoggedIn" class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center">
        <h1 class="text-xl font-bold text-gray-800">Training Chef</h1>
-       <span class="text-sm text-gray-600">Logged in as: {{ userEmail }}</span>
+       <span class="text-sm text-gray-600">Logged in as: {{ userState.email }}</span>
     </header>
 
-    <div v-if="!isLoggedIn" class="flex h-full items-center justify-center">
+    <div v-if="!userState.isLoggedIn" class="flex h-full items-center justify-center">
         <div class="bg-white p-10 rounded-xl shadow-md text-center">
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Welcome to Training Chef</h2>
             <p class="text-gray-600 mb-8">Please sign in to access your tools.</p>
@@ -62,7 +63,7 @@ const handleProfileSaved = () => {
         <ProfileSettings @profileSaved="handleProfileSaved" />
       </div>
       <div class="w-2/3 p-6 bg-gray-50">
-        <ChefChat ref="chatRef" />
+        <ChefChat />
       </div>
     </div>
 
